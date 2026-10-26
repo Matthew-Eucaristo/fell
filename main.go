@@ -144,7 +144,7 @@ func runDefault(args []string) error {
 		if *jsonOut {
 			return contract.Encode(os.Stdout, contract.NewScanDoc(res, opts.Roots, contract.NewTool(buildVersion())))
 		}
-		report.Text(os.Stdout, res, opts.Roots)
+		report.Text(os.Stdout, res, opts.Roots, opts.Agents)
 		return nil
 	}
 	mode := clean.Trash
@@ -185,7 +185,7 @@ func runScan(args []string) error {
 	if *jsonOut {
 		return contract.Encode(os.Stdout, contract.NewScanDoc(res, opts.Roots, tool))
 	}
-	report.Text(os.Stdout, res, opts.Roots)
+	report.Text(os.Stdout, res, opts.Roots, opts.Agents)
 	return nil
 }
 

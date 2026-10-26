@@ -3,7 +3,7 @@
 Find the git worktrees your AI coding agents left behind, see exactly what is in each one, and cut them down safely. Nothing is deleted permanently, and nothing an app still uses is touched.
 
 ```
- fell  ● trash  ·  807.5 MB in 6 worktrees  ·  807.4 MB rebuildable  ·  212.4 GB free  ·  ~/dev + agents
+ fell  ● trash  ·  807.5 MB in 6 worktrees  ·  807.4 MB rebuildable  ·  212.4 GB free  ·  ~/dev + agent locations
 
                          SIZE  REB.  ACTIVE    SAFETY     WORKTREE  (sort: size)
   ◐ Claude Code  2 worktree(s) · 429.9 MB
@@ -187,6 +187,7 @@ To remove fell completely:
 ```sh
 brew uninstall fell
 brew autoremove                     # removes Go if it was installed only to build fell
+brew cleanup --prune=all            # optional: clears Homebrew's own download and build cache, including fell's source tarball
 brew untap matthew-eucaristo/tap    # only if nothing else is installed from this tap
 ```
 

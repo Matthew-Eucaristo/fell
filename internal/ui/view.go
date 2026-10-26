@@ -52,7 +52,7 @@ func (m *Model) render() string {
 		return red.Render("fell: "+m.err.Error()) + "\n\n" + faint.Render("q quit")
 	}
 	if m.res == nil {
-		return m.header() + "\n\n  " + faint.Render("Scanning "+m.rootsText()+" and agent locations …")
+		return m.header() + "\n\n  " + faint.Render("Scanning "+m.whereText()+" …")
 	}
 	var b strings.Builder
 	line := func(s string) { b.WriteString(ansi.Truncate(s, m.width, "…") + "\n") }
@@ -68,7 +68,7 @@ func (m *Model) render() string {
 	case m.confirm != nil:
 		lines = m.confirmLines(body + 1)
 	case len(rows) == 0:
-		lines = []string{"", "  " + faint.Render("No linked worktrees under "+m.rootsText()+" or in known agent locations."), "",
+		lines = []string{"", "  " + faint.Render("No linked worktrees in "+m.whereText()+"."), "",
 			"  " + faint.Render("fell lists worktrees created with `git worktree add` by you or by agents such as Claude Code, Codex, Cursor or Conductor.")}
 	default:
 		line(faint.Render(fmt.Sprintf("    %-*s  %9s  %4s  %-8s  %-10s %s", barWidth, "", "SIZE", "REB.", "ACTIVE", "SAFETY", "WORKTREE  (sort: "+m.sort.String()+")")))
@@ -122,6 +122,15 @@ func (m *Model) rootsText() string {
 	return strings.Join(rs, ", ")
 }
 
+// whereText names what was scanned: the roots, plus agent locations unless
+// --no-agents.
+func (m *Model) whereText() string {
+	if m.opts.Agents {
+		return m.rootsText() + " + agent locations"
+	}
+	return m.rootsText()
+}
+
 func (m *Model) header() string {
 	mode := green.Render("● trash")
 	switch m.copts.Mode {
@@ -149,7 +158,7 @@ func (m *Model) header() string {
 			parts = append(parts, faint.Render("measuring…"))
 		}
 	}
-	parts = append(parts, faint.Render(m.rootsText()+" + agents"))
+	parts = append(parts, faint.Render(m.whereText()))
 	return " " + strings.Join(parts, faint.Render("  ·  "))
 }
 

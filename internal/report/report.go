@@ -16,7 +16,7 @@ import (
 )
 
 // Text writes worktrees grouped by the tool that created them.
-func Text(w io.Writer, res *scan.Result, roots []string) {
+func Text(w io.Writer, res *scan.Result, roots []string, withAgents bool) {
 	home, _ := os.UserHomeDir()
 	now := time.Now()
 	var total, strip scan.Size
@@ -28,8 +28,12 @@ func Text(w io.Writer, res *scan.Result, roots []string) {
 	for _, r := range roots {
 		rs = append(rs, format.Tilde(r, home))
 	}
-	fmt.Fprintf(w, "fell: %d worktree(s), %s on disk (%s freeable), %s rebuildable (%s freeable)  (roots: %s + agent locations)\n",
-		len(res.Worktrees), format.Bytes(total.Allocated), format.Bytes(total.Exclusive()), format.Bytes(strip.Allocated), format.Bytes(strip.Exclusive()), strings.Join(rs, ", "))
+	where := strings.Join(rs, ", ")
+	if withAgents {
+		where += " + agent locations"
+	}
+	fmt.Fprintf(w, "fell: %d worktree(s), %s on disk (%s freeable), %s rebuildable (%s freeable)  (roots: %s)\n",
+		len(res.Worktrees), format.Bytes(total.Allocated), format.Bytes(total.Exclusive()), format.Bytes(strip.Allocated), format.Bytes(strip.Exclusive()), where)
 	for _, warn := range res.Warnings {
 		fmt.Fprintln(w, "warning:", warn)
 	}
