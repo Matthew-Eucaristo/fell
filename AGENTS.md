@@ -25,7 +25,7 @@ Machine-wide, safety-first TUI/CLI that finds git worktrees (especially ones AI 
 - The contract only grows within a schema version.
 
 ## Release & state (family publishing rules: `../AGENTS.md`)
-- Demos only via `demo/setup.sh`; JSON output shows `~/` paths.
+- Demos only via `demo/setup.sh` (fake HOME on a small disk image on macOS, so no real paths or disk sizes); `vhs demo/demo.tape` renders `demo/demo.gif` locally, never in CI. JSON output shows `~/` paths.
 - fell writes no config, cache or state. Rescue folders go to the Trash; a staging dir (`$TMPDIR` on macOS, `$XDG_DATA_HOME` on Linux) exists only during a retire.
 - Homebrew: source-build formula in `Matthew-Eucaristo/homebrew-tap` (`Formula/fell.rb`), bumped by hand per RELEASING.md.
 

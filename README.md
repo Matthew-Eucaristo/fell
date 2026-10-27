@@ -2,28 +2,7 @@
 
 Find the git worktrees your AI coding agents left behind, see exactly what is in each one, and cut them down safely. Nothing is deleted permanently, and nothing an app still uses is touched.
 
-```
- fell  ● trash  ·  807.5 MB in 6 worktrees  ·  807.4 MB rebuildable  ·  212.4 GB free  ·  ~/dev + agent locations
-
-                         SIZE  REB.  ACTIVE    SAFETY     WORKTREE  (sort: size)
-  ◐ Claude Code  2 worktree(s) · 429.9 MB
-▌ ○ █████████████▓   241.2 MB   99%  4mo ago   ● safe      shop/agent-b81d0e44c2a95f13  detached
-  ● ██████████▓···   188.8 MB   99%  3mo ago   ■ protected shop/agent-a3f9c2e1b7d04a6e  detached ↑1 only-here:1
-  ○ Codex  1 worktree(s) · 157.3 MB
-  ○ █████████▓····   157.3 MB   99%  3w ago    ■ protected shop/7c1e  detached app-tracked
-  ○ Cursor  1 worktree(s) · 125.8 MB
-  ○ ███████▓······   125.8 MB   99%  9d ago    ■ protected shop/q4k2  detached app-tracked
-  ○ git (manual)  2 worktree(s) · 94.4 MB
-  ○ █████▓········    94.4 MB   99%  today     ■ protected shop/shop-hotfix  hotfix/tax ✎1 secrets:1
-  ○ ··············        0 B        5w ago    ▲ caution   shop/shop-spike  checkout missing ↑1
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-  shop/agent-b81d0e44c2a95f13  Claude Code · detached at 7b4a0f5f · last git activity 4mo ago
-  ~/dev/shop/.claude/worktrees/agent-b81d0e44c2a95f13  [wt-ac80840e6477]
-  rebuildable: .next 62.9 MB, node_modules 178.3 MB  ·  commits: all on a remote
-  safe  strip ✓  retire ✓
-  1 selected (188.8 MB)
-  ↑↓ move  space select  a all  s strip  r retire  tab group  o sort  R rescan  ? legend  q quit
-```
+![fell scanning worktrees left by Claude Code, Codex and Cursor: it refuses to retire one holding an unpushed commit until forced (then bundles it), keeps app-tracked worktrees for their app to remove, and strips node_modules from the rest](demo/demo.gif)
 
 *To fell* is to cut down a tree. Claude Code, Codex, Cursor, Conductor and friends now give every chat, session or subagent its own git worktree. Each one is a full checkout with its own `node_modules` and build output, and they pile up in half a dozen places. Some are detached HEADs that `git branch` never shows. Vendor cleanups either leak them or delete live work and git-ignored files without a trace. `fell` is the careful middle:
 
@@ -210,7 +189,7 @@ Installed with `go install`? Run `rm "$(go env GOPATH)/bin/fell"`. Anything fell
 ```sh
 gofmt -l . && go vet ./... && go test -race ./...
 go run . --dry-run
-source demo/setup.sh && fell        # synthetic workspace; vhs demo/demo.tape records the GIF
+source demo/setup.sh && fell        # synthetic workspace; `vhs demo/demo.tape` re-records demo/demo.gif
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). Security reports: [SECURITY.md](SECURITY.md). Release notes: [GitHub Releases](https://github.com/Matthew-Eucaristo/fell/releases).

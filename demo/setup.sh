@@ -3,12 +3,21 @@
 # app repository with worktrees left by several agent tools, fixed git
 # identity and prompt. Nothing from the real machine appears in the recording.
 # Usage: source demo/setup.sh   (from the repository root)
+# Remove: hdiutil detach /tmp/fell-demo/home (macOS); rm -rf /tmp/fell-demo
 set -e
 
 DEMO="$(cd /tmp && pwd -P)/fell-demo"
+[ -d "$DEMO/home" ] && command -v hdiutil >/dev/null && hdiutil detach -quiet "$DEMO/home" 2>/dev/null
 [ -d "$DEMO" ] && chmod -R u+w "$DEMO" && rm -rf "$DEMO"
-mkdir -p "$DEMO/bin" "$DEMO/home/dev"
+mkdir -p "$DEMO/bin" "$DEMO/home"
 go build -trimpath -o "$DEMO/bin/fell" .
+# On macOS the fake HOME is a small disk image, so "free" in the header
+# shows the image's space rather than this machine's disk.
+if command -v hdiutil >/dev/null; then
+  hdiutil create -quiet -size 3g -fs APFS -volname demo -type SPARSE "$DEMO/home.sparseimage"
+  hdiutil attach -quiet -nobrowse -mountpoint "$DEMO/home" "$DEMO/home.sparseimage"
+fi
+mkdir -p "$DEMO/home/dev"
 
 export HOME="$DEMO/home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 export GIT_AUTHOR_NAME=demo GIT_AUTHOR_EMAIL=demo@example.com GIT_COMMITTER_NAME=demo GIT_COMMITTER_EMAIL=demo@example.com

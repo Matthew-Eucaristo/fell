@@ -1,30 +1,42 @@
 # Record with: vhs demo/demo.tape   (run from the repository root)
+# Everything shown comes from demo/setup.sh's generated workspace.
 Output demo/demo.gif
 Set Shell bash
 Set FontSize 15
 Set Width 1280
-Set Height 640
+Set Height 580
 Set Padding 16
-Set TypingSpeed 60ms
+Set TypingSpeed 50ms
+Set Framerate 20
 
 Hide
 Type "source demo/setup.sh && clear" Enter
-Sleep 10s
+Sleep 12s
 Show
 
-Type "fell --dry-run" Sleep 400ms Enter
-Sleep 2.5s
-Down Sleep 600ms
-Down Sleep 600ms
-Type "s" Sleep 1.5s
+Type "fell --dry-run" Sleep 300ms Enter
+Sleep 3s
+
+# A Claude Code lane holding a commit that exists nowhere else.
+Down Sleep 2.5s
+Type "r" Sleep 2.5s
+Type "f" Sleep 2.5s
 Type "y" Sleep 1.5s
-Type "r" Sleep 2s
-Type "f" Sleep 1.5s
-Escape Sleep 800ms
-Type "?" Sleep 2.5s
-Type "q" Sleep 500ms
-Tab Sleep 1.5s
-Type "q" Sleep 1.5s
+
+# App-tracked worktrees: strip only, and how the app removes them.
+Down Sleep 400ms
+Down Sleep 2.5s
+Type "r" Sleep 3s
+Escape Sleep 500ms
+
+# Select everything and strip the rebuildable artifacts.
+Type "a" Sleep 1s
+Type "s" Sleep 3s
+Type "y" Sleep 2s
+
+Tab Sleep 2s
+Type "q" Sleep 3s
 
 Hide
-Type "rm -rf /tmp/fell-demo /private/tmp/fell-demo" Enter
+Type "cd / && hdiutil detach -quiet /tmp/fell-demo/home; rm -rf /tmp/fell-demo" Enter
+Sleep 2s
