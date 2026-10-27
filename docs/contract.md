@@ -102,6 +102,7 @@ Read-only. Roots default to `~/dev`; known agent locations (Codex, Cursor, Condu
 | `locked` | protected | retire needs `--unlock` (the lock's owner is not running, or the lock is not an agent's) |
 | `unpushed` | caution | bundled when no branch keeps the commits |
 | `no_remote` | caution | informational |
+| `recent` | caution | changed in the last 7 days (newest of the HEAD commit, git activity in the worktree's record such as checkouts and the HEAD reflog, and non-ignored file changes); an agent session may still resume in it. Same window as nodekill's `recent`; tools driving fell should not act on it in bulk |
 | `ignored_precious` | caution | copied to the rescue folder |
 | `ignored_data` | caution | ≥ 10 MB of ignored non-artifact data; stays in the trashed checkout |
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Matthew-Eucaristo/fell/internal/agents"
 	tr "github.com/Matthew-Eucaristo/fell/internal/testrepo"
@@ -239,5 +240,61 @@ func TestUnknownCommitsAreProtected(t *testing.T) {
 	w.Classify()
 	if !w.Safety.Has(ReasonUnknown) || w.Decide(ActionRetire).Allowed {
 		t.Errorf("unknown only_here allowed retire: %+v", w.Safety)
+	}
+}
+
+// A worktree changed within RecentWindow is worth a look, not safe: an agent
+// session may still resume in it. Older ones and unknown activity stay safe.
+func TestRecentActivityIsCaution(t *testing.T) {
+	defer func(f func() time.Time) { now = f }(now)
+	at := time.Date(2026, 1, 20, 12, 0, 0, 0, time.UTC)
+	now = func() time.Time { return at }
+	for _, c := range []struct {
+		name   string
+		active time.Time
+		want   Level
+	}{
+		{"2 hours ago", at.Add(-2 * time.Hour), Caution},
+		{"6 days ago", at.Add(-6 * 24 * time.Hour), Caution},
+		{"8 days ago", at.Add(-8 * 24 * time.Hour), Safe},
+		{"3 months ago", at.AddDate(0, -3, 0), Safe},
+		{"unknown", time.Time{}, Safe},
+	} {
+		w := &Worktree{Kind: KindWorktree, Head: "abc", HasRemotes: true, CwdKnown: true, LastActivity: c.active, ActivitySource: "commit"}
+		w.Classify()
+		if w.Safety.Level != c.want || w.Safety.Has(ReasonRecent) != (c.want == Caution) {
+			t.Errorf("%s: %+v", c.name, w.Safety)
+		}
+		if !w.Decide(ActionRetire).Allowed || !w.Decide(ActionStrip).Allowed {
+			t.Errorf("%s: recent activity must not change what is allowed one by one", c.name)
+		}
+	}
+}
+
+// End to end: a just-made worktree is recent; the same one aged past the
+// window (commit date, files and git's record) is safe again.
+func TestScanMarksRecentWorktrees(t *testing.T) {
+	home := tr.Dir(t)
+	root := filepath.Join(home, "dev")
+	repo := tr.Repo(t, root, "app")
+	wt := tr.Worktree(t, repo, filepath.Join(root, "app-old"), "--detach")
+	e := env(home)
+	r, err := Scan(Options{Roots: []string{root}, Env: e})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if w := r.Find(wt); w == nil || !w.Safety.Has(ReasonRecent) {
+		t.Fatalf("fresh worktree not recent: %+v", w)
+	}
+
+	defer func(f func() time.Time) { now = f }(now)
+	later := time.Now().Add(30 * 24 * time.Hour)
+	now = func() time.Time { return later }
+	r, err = Scan(Options{Roots: []string{root}, Env: e})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if w := r.Find(wt); w == nil || w.Safety.Has(ReasonRecent) {
+		t.Fatalf("worktree idle for 30 days still recent: %+v", w.Safety)
 	}
 }

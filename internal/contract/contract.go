@@ -472,6 +472,7 @@ func NewCapabilities(tool Tool) Capabilities {
 			{scan.ReasonLocked, "protected", []string{"retire needs --unlock"}},
 			{scan.ReasonUnpushed, "caution", []string{"saved in the rescue bundle when no branch keeps it"}},
 			{scan.ReasonNoRemote, "caution", nil},
+			{scan.ReasonRecent, "caution", []string{"changed in the last 7 days; never acted on in bulk by family tools"}},
 			{scan.ReasonPrecious, "caution", []string{"copied to the rescue folder"}},
 			{scan.ReasonIgnoredData, "caution", nil},
 		},

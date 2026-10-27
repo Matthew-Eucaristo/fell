@@ -11,6 +11,7 @@ import (
 
 	"github.com/Matthew-Eucaristo/fell/internal/agents"
 	"github.com/Matthew-Eucaristo/fell/internal/clean"
+	"github.com/Matthew-Eucaristo/fell/internal/procs"
 	"github.com/Matthew-Eucaristo/fell/internal/scan"
 	tr "github.com/Matthew-Eucaristo/fell/internal/testrepo"
 )
@@ -24,6 +25,10 @@ func fixture(t *testing.T) (*Model, map[string]string) {
 	root := filepath.Join(home, "dev")
 	os.MkdirAll(root, 0o755)
 	env := agents.Env{Home: home, TmpDir: base, Getenv: func(string) string { return "" }}
+	// No app running, whatever runs on this machine.
+	snap := scan.Snapshot
+	scan.Snapshot = func() *procs.Table { return &procs.Table{CwdKnown: true} }
+	t.Cleanup(func() { scan.Snapshot = snap })
 	repo := tr.Repo(t, root, "shop")
 	paths := map[string]string{}
 	paths["agent"] = tr.Worktree(t, repo, filepath.Join(repo, ".claude", "worktrees", "agent-a1b2c3d4"), "--detach")

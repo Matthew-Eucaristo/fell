@@ -22,6 +22,7 @@ Machine-wide, safety-first TUI/CLI that finds git worktrees (especially ones AI 
 - Freed space is reported as the measured statfs change; sizes count hard links once; `shared` = bytes removal would not free (hard links leaving the item; on macOS APFS clone/snapshot blocks via `ATTR_CMNEXT_PRIVATESIZE`, so `exclusive` is a lower bound there). Btrfs/XFS reflinks are not visible.
 - Main checkouts and bare repos are never items. Symlinks are never followed or removed through. Path comparisons go through `internal/pathx` (case-folded on macOS).
 - "Only here" commits = tips git's record of the worktree keeps (HEAD, its reflog, refs/worktree/*, refs/bisect/*) minus branches/tags/remotes; bundles are built in a throwaway bare repo with alternates, never by writing refs into the user's repo. Submodules (`<admin>/modules`) block retire. Unknown evidence → `unknown_state`.
+- Activity within `scan.RecentWindow` (7 days, the family-wide window shared with nodekill) adds `recent` → caution, never safe: an agent session may resume there. It changes no allowed action, so tools driving fell skip it in bulk. Tests swap `scan.Snapshot` so liveness never depends on apps running on the test machine.
 - The contract only grows within a schema version.
 
 ## Release & state (family publishing rules: `../AGENTS.md`)

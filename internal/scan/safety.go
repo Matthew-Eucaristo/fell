@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Matthew-Eucaristo/fell/internal/format"
 )
@@ -37,6 +38,7 @@ const (
 	ReasonPrecious        = "ignored_precious"
 	ReasonIgnoredData     = "ignored_data"
 	ReasonLivenessUnknown = "liveness_unknown"
+	ReasonRecent          = "recent"
 )
 
 // Reason is one piece of safety evidence.
@@ -90,6 +92,14 @@ func (d Decision) Permits(force, unlock bool) bool {
 
 // ignoredDataThreshold flags worktrees holding real ignored data.
 const ignoredDataThreshold = 10 << 20
+
+// RecentWindow marks a worktree changed this recently as worth a look: an
+// agent session may still resume in it. Same window as the rest of the
+// family (nodekill's "recent").
+const RecentWindow = 7 * 24 * time.Hour
+
+// now is the clock Classify reads; tests replace it.
+var now = time.Now
 
 // Classify derives Safety from the evidence. It is pure and can be rerun
 // after sizes arrive.
@@ -155,6 +165,9 @@ func (w *Worktree) Classify() {
 	if n := w.PreciousAtRisk(); n > 0 {
 		add(ReasonPrecious, fmt.Sprintf("%d ignored secret/data file(s), copied to the rescue folder on retire", n))
 	}
+	if t := w.LastActivity; !t.IsZero() && now().Sub(t) < RecentWindow {
+		add(ReasonRecent, "changed in the last 7 days ("+activityText[w.ActivitySource]+" "+format.Ago(t, now())+"); an agent session may still resume in it")
+	}
 	if w.IgnoredOther >= ignoredDataThreshold {
 		add(ReasonIgnoredData, format.Bytes(w.IgnoredOther)+" of git-ignored files that are not rebuildable artifacts")
 	}
@@ -179,6 +192,8 @@ func (w *Worktree) Classify() {
 	}
 	w.Safety = Safety{Level: level, Reasons: rs}
 }
+
+var activityText = map[string]string{"commit": "last commit", "git": "last git activity", "files": "last file change", "": "last activity"}
 
 // Decide applies the rules for one action.
 func (w *Worktree) Decide(action string) Decision {

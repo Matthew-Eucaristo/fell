@@ -75,7 +75,7 @@ func Scan(opts Options) (*Result, error) {
 			}
 		}
 	}
-	res.Procs = procs.Snapshot()
+	res.Procs = Snapshot()
 
 	repos := map[string]*repo{}
 	for _, c := range sortedKeys(f.commonDirs) {
@@ -215,6 +215,10 @@ func (r *Result) Owners() []string {
 	return ids
 }
 
+// Snapshot reads the process table for liveness; tests swap it so results
+// do not depend on which apps run on the test machine.
+var Snapshot = procs.Snapshot
+
 // registryPath is swapped in tests.
 var registryPath = func(e agents.Env) string { return e.DesktopRegistryPath() }
 
@@ -222,7 +226,7 @@ var registryPath = func(e agents.Env) string { return e.DesktopRegistryPath() }
 // registry, for re-validation right before acting on it.
 func Refresh(old *Worktree, env agents.Env) (*Worktree, error) {
 	reg := agents.LoadRegistry(registryPath(env))
-	pt := procs.Snapshot()
+	pt := Snapshot()
 	var w *Worktree
 	switch old.Kind {
 	case KindOrphan:
