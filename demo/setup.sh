@@ -3,7 +3,7 @@
 # app repository with worktrees left by several agent tools, fixed git
 # identity and prompt. Nothing from the real machine appears in the recording.
 # Usage: source demo/setup.sh   (from the repository root)
-# Remove: hdiutil detach /tmp/fell-demo/home (macOS); rm -rf /tmp/fell-demo
+# Remove: kill $FELL_DEMO_LIVE; hdiutil detach /tmp/fell-demo/home (macOS); rm -rf /tmp/fell-demo
 set -e
 
 DEMO="$(cd /tmp && pwd -P)/fell-demo"
@@ -57,9 +57,17 @@ wt --detach "$HOME/.codex/worktrees/7c1e/shop"
 blob "$HOME/.codex/worktrees/7c1e/shop/node_modules" 150
 echo '{"version":1,"ownerThreadId":"demo"}' > "$APP/.git/worktrees/shop/codex-thread.json"
 
-# Cursor parallel agent.
-wt --detach "$HOME/.cursor/worktrees/shop/q4k2"
-blob "$HOME/.cursor/worktrees/shop/q4k2/node_modules" 120
+# Conductor workspace (app-tracked, so strip only).
+wt --detach "$HOME/conductor/workspaces/shop/lisbon"
+blob "$HOME/conductor/workspaces/shop/lisbon/node_modules" 120
+
+# A Claude Code session that is running right now: its lock names a live
+# process (a sleep started here), so fell will not touch it.
+sleep 900 & FELL_DEMO_LIVE=$!
+disown
+wt --detach "$APP/.claude/worktrees/fix-search"
+blob "$APP/.claude/worktrees/fix-search/node_modules" 40
+git -C "$APP" worktree lock --reason "claude session fix-search (pid $FELL_DEMO_LIVE)" "$APP/.claude/worktrees/fix-search"
 
 # Your own hotfix worktree, with an ignored .env and an uncommitted change.
 wt -b hotfix/tax "$HOME/dev/shop-hotfix"
@@ -69,7 +77,7 @@ echo 'STRIPE_KEY=sk_test_demo' > "$HOME/dev/shop-hotfix/.env"
 age "$APP/.claude/worktrees/agent-a3f9c2e1b7d04a6e" agent-a3f9c2e1b7d04a6e 95
 age "$APP/.claude/worktrees/agent-b81d0e44c2a95f13" agent-b81d0e44c2a95f13 140
 age "$HOME/.codex/worktrees/7c1e/shop" shop 21
-age "$HOME/.cursor/worktrees/shop/q4k2" q4k2 9
+age "$HOME/conductor/workspaces/shop/lisbon" lisbon 9
 age "$HOME/dev/shop-hotfix" shop-hotfix 2
 echo '// wip' >> "$HOME/dev/shop-hotfix/src/app.js"
 
@@ -78,6 +86,12 @@ wt -b spike "$HOME/dev/shop-spike"
 commit "$HOME/dev/shop-spike" 40 "spike"
 rm -rf "$HOME/dev/shop-spike"
 find "$APP/.git/worktrees/shop-spike" -exec touch -h -t "$(stamp_ago 40)" {} +
+
+# Apps that own fixture worktrees make them "live" while running; quit them
+# for a reproducible recording.
+for app in Codex ChatGPT Conductor; do
+  pgrep -xq "$app" && echo "note: $app is running; its demo worktree will show as live" >&2 || true
+done
 
 export PATH="$DEMO/bin:/usr/bin:/bin" PS1='$ '
 unset CODEX_HOME T3CODE_HOME XDG_CONFIG_HOME XDG_DATA_HOME

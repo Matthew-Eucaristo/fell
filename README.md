@@ -2,7 +2,7 @@
 
 Find the git worktrees your AI coding agents left behind, see exactly what is in each one, and cut them down safely. Nothing is deleted permanently, and nothing an app still uses is touched.
 
-![fell scanning worktrees left by Claude Code, Codex and Cursor: it refuses to retire one holding an unpushed commit until forced (then bundles it), keeps app-tracked worktrees for their app to remove, and strips node_modules from the rest](demo/demo.gif)
+![fell scanning worktrees left by Claude Code, Codex and Conductor: it refuses to retire one holding a commit that exists nowhere else until forced (then bundles it), leaves a running session alone, keeps app-tracked worktrees for their app to remove, strips node_modules from the rest, and prints the same scan as JSON](demo/demo.gif)
 
 *To fell* is to cut down a tree. Claude Code, Codex, Cursor, Conductor and friends now give every chat, session or subagent its own git worktree. Each one is a full checkout with its own `node_modules` and build output, and they pile up in half a dozen places. Some are detached HEADs that `git branch` never shows. Vendor cleanups either leak them or delete live work and git-ignored files without a trace. `fell` is the careful middle:
 

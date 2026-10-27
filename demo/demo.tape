@@ -23,6 +23,9 @@ Type "r" Sleep 2.5s
 Type "f" Sleep 2.5s
 Type "y" Sleep 1.5s
 
+# A session that is running right now: fell will not touch it.
+Down Sleep 3s
+
 # App-tracked worktrees: strip only, and how the app removes them.
 Down Sleep 400ms
 Down Sleep 2.5s
@@ -37,6 +40,11 @@ Type "y" Sleep 2s
 Tab Sleep 2s
 Type "q" Sleep 3s
 
+# The same scan, for scripts and other tools.
+Set TypingSpeed 25ms
+Type "fell scan --json | jq -c '.items[] | [.id, .name, .safety.level]'" Sleep 300ms Enter
+Sleep 3.5s
+
 Hide
-Type "cd / && hdiutil detach -quiet /tmp/fell-demo/home; rm -rf /tmp/fell-demo" Enter
+Type "kill $FELL_DEMO_LIVE; cd / && hdiutil detach -quiet /tmp/fell-demo/home; rm -rf /tmp/fell-demo" Enter
 Sleep 2s
