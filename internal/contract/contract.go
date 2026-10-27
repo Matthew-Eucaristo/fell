@@ -48,35 +48,26 @@ func bytesOf(s scan.Size) Bytes {
 
 // Item is one worktree.
 type Item struct {
-	ID          string     `json:"id"`
-	Fingerprint string     `json:"fingerprint"`
-	Kind        scan.Kind  `json:"kind"`
-	Path        string     `json:"path"`
-	Name        string     `json:"name"`
-	Project     Project    `json:"project"`
-	Owner       Owner      `json:"owner"`
-	Measured    bool       `json:"measured"`
-	Bytes       Bytes      `json:"bytes"`
-	Strippable  Bytes      `json:"strippable_bytes"`
-	IgnoredData int64      `json:"ignored_other_bytes"`
-	SizeNote    string     `json:"size_note"`
-	Artifacts   []Artifact `json:"artifacts"`
-	Git         Git        `json:"git"`
-	Precious    []Precious `json:"precious"`
-	Activity    Activity   `json:"activity"`
-	Liveness    Liveness   `json:"liveness"`
-	Safety      scan.Safety
+	ID          string          `json:"id"`
+	Fingerprint string          `json:"fingerprint"`
+	Kind        scan.Kind       `json:"kind"`
+	Path        string          `json:"path"`
+	Name        string          `json:"name"`
+	Project     Project         `json:"project"`
+	Owner       Owner           `json:"owner"`
+	Measured    bool            `json:"measured"`
+	Bytes       Bytes           `json:"bytes"`
+	Strippable  Bytes           `json:"strippable_bytes"`
+	IgnoredData int64           `json:"ignored_other_bytes"`
+	SizeNote    string          `json:"size_note"`
+	Artifacts   []Artifact      `json:"artifacts"`
+	Git         Git             `json:"git"`
+	Precious    []Precious      `json:"precious"`
+	Activity    Activity        `json:"activity"`
+	Liveness    Liveness        `json:"liveness"`
+	Safety      scan.Safety     `json:"safety"`
 	Actions     []scan.Decision `json:"actions"`
 	Errors      []string        `json:"errors,omitempty"`
-}
-
-// MarshalJSON keeps "safety" lowercase without a tag on the embedded type.
-func (i Item) MarshalJSON() ([]byte, error) {
-	type alias Item
-	return json.Marshal(struct {
-		alias
-		Safety scan.Safety `json:"safety"`
-	}{alias(i), i.Safety})
 }
 
 type Project struct {

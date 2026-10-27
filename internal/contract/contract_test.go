@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Matthew-Eucaristo/fell/internal/clean"
+	"github.com/Matthew-Eucaristo/fell/internal/scan"
 )
 
 func TestReadPlanValidates(t *testing.T) {
@@ -83,5 +84,22 @@ func TestCapabilitiesListEveryReasonCode(t *testing.T) {
 		if !strings.Contains(string(b), `"`+code+`"`) {
 			t.Errorf("capabilities lack %s", code)
 		}
+	}
+}
+
+func TestItemSafetyKeyIsLowercaseOnly(t *testing.T) {
+	b, err := json.Marshal(Item{Safety: scan.Safety{Level: scan.Caution}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v map[string]json.RawMessage
+	if err := json.Unmarshal(b, &v); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(v["safety"]), `"caution"`) {
+		t.Errorf("safety = %s", v["safety"])
+	}
+	if _, dup := v["Safety"]; dup {
+		t.Error(`item carries a duplicate "Safety" key`)
 	}
 }
