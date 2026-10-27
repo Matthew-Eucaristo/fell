@@ -150,7 +150,7 @@ func Outcomes(w io.Writer, outs []*clean.Outcome, mode clean.Mode) {
 			}
 			fmt.Fprintf(w, "%-14s %9s  %s\n", verb, format.Bytes(o.Estimate), p)
 			if r := o.Rescue; r != nil {
-				fmt.Fprintf(w, "               rescue: %d commit(s) bundled, patch=%v, %d secret file(s) copied → %s\n", r.BundleCommits, r.Patch, len(r.Precious), r.Folder)
+				fmt.Fprintf(w, "               rescue folder %s: %s\n", r.Folder, rescueText(r))
 			}
 			for _, s := range o.Skipped {
 				fmt.Fprintf(w, "               skipped: %s\n", s)
@@ -173,4 +173,22 @@ func Outcomes(w io.Writer, outs []*clean.Outcome, mode clean.Mode) {
 				format.Bytes(est), clean.TrashName, format.Bytes(freed), clean.TrashName)
 		}
 	}
+}
+
+// rescueText lists what a rescue folder holds, in words.
+func rescueText(r *clean.Rescue) string {
+	var parts []string
+	if r.BundleCommits > 0 {
+		parts = append(parts, fmt.Sprintf("%d commit(s) bundled", r.BundleCommits))
+	}
+	if r.Patch {
+		parts = append(parts, "uncommitted changes as a patch")
+	}
+	if n := len(r.Precious); n > 0 {
+		parts = append(parts, fmt.Sprintf("%d secret file(s) copied", n))
+	}
+	if len(parts) == 0 {
+		return "RESTORE.md only"
+	}
+	return strings.Join(parts, ", ")
 }

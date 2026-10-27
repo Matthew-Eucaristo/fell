@@ -173,3 +173,87 @@ func TestFineBar(t *testing.T) {
 		}
 	}
 }
+
+// Tiny and odd terminal sizes must render without panicking, keep every
+// line inside the width and keep the cursor row visible.
+func TestRenderSmallTerminals(t *testing.T) {
+	m, _ := fixture(t)
+	for _, size := range [][2]int{{0, 0}, {20, 5}, {40, 12}, {80, 14}} {
+		m.Update(tea.WindowSizeMsg{Width: size[0], Height: size[1]})
+		m.key("end")
+		m.scroll() // Update runs it after every message
+		for _, view := range []func(){func() {}, func() { m.key("r") }, func() { m.key("n"); m.key("?") }} {
+			view()
+			for _, l := range strings.Split(m.render(), "\n") {
+				if w := ansi.StringWidth(l); size[0] > 0 && w > size[0] {
+					t.Errorf("%dx%d: line is %d wide: %q", size[0], size[1], w, ansi.Strip(l))
+				}
+			}
+			m.key("esc")
+		}
+		if cur := m.cursor(m.rows()); cur < m.offset || cur >= m.offset+m.listHeight() {
+			t.Errorf("%dx%d: cursor %d outside rows %d..%d", size[0], size[1], cur, m.offset, m.offset+m.listHeight())
+		}
+	}
+}
+
+func TestEmptyScan(t *testing.T) {
+	m, _ := fixture(t)
+	m.res = &scan.Result{}
+	m.key("s")
+	m.key("r")
+	m.key("space")
+	if m.confirm != nil {
+		t.Error("an action was offered with nothing listed")
+	}
+	if !strings.Contains(screen(m), "No linked worktrees") {
+		t.Error("empty state missing")
+	}
+}
+
+// q while an action runs warns instead of quitting; ctrl+c then quits.
+func TestQuitWhileBusy(t *testing.T) {
+	m, _ := fixture(t)
+	m.status[m.cursorKey] = working
+	if cmd := m.key("q"); cmd != nil {
+		t.Fatal("q quit while busy")
+	}
+	if !strings.Contains(screen(m), "Actions still running") {
+		t.Error("no warning shown")
+	}
+	if cmd := m.key("ctrl+c"); cmd == nil {
+		t.Error("ctrl+c after the warning did not quit")
+	}
+}
+
+// A size measured before a strip must not overwrite the re-measured item.
+func TestStaleMeasurementIgnoredAfterStrip(t *testing.T) {
+	m, _ := fixture(t)
+	w := m.find(m.cursorKey)
+	nw := w.Clone()
+	m.Update(actedMsg{&clean.Outcome{ID: w.ID, Action: scan.ActionStrip, Status: clean.StatusDone}, nw})
+	before := nw.Total()
+	m.Update(measuredMsg(scan.Measurement{ID: w.ID}))
+	if m.find(w.ID).Total() != before {
+		t.Error("a stale measurement replaced the fresh one")
+	}
+}
+
+// Until the user moves, the cursor stays on the top row as sizes reorder it.
+func TestCursorFollowsTopRowWhileMeasuring(t *testing.T) {
+	m, _ := fixture(t)
+	rows := m.rows()
+	last := rows[len(rows)-1].w
+	m.cursorKey = last.ID
+	big := scan.Measure(last)
+	big.Source.Allocated = 1 << 40
+	m.Update(measuredMsg(big))
+	if m.cursorKey != firstItem(m.rows()) {
+		t.Errorf("cursor on %s, want the top row", m.cursorKey)
+	}
+	m.key("down")
+	m.Update(measuredMsg(scan.Measure(last)))
+	if m.cursorKey == firstItem(m.rows()) {
+		t.Error("cursor jumped back after the user moved it")
+	}
+}

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -40,6 +41,9 @@ const (
 
 func (m *Model) bodyHeight() int { return max(3, m.height-chromeLines) }
 
+// listHeight is the rows left for worktrees below the column header.
+func (m *Model) listHeight() int { return m.bodyHeight() - 1 }
+
 func (m *Model) View() tea.View {
 	v := tea.NewView(m.render())
 	v.AltScreen = true
@@ -73,13 +77,6 @@ func (m *Model) render() string {
 	default:
 		line(faint.Render(fmt.Sprintf("    %-*s  %9s  %4s  %-8s  %-10s %s", barWidth, "", "SIZE", "REB.", "ACTIVE", "SAFETY", "WORKTREE  (sort: "+m.sort.String()+")")))
 		body--
-		if cur < m.offset {
-			m.offset = cur
-		}
-		if cur >= m.offset+body {
-			m.offset = cur - body + 1
-		}
-		m.offset = max(0, min(m.offset, max(0, len(rows)-body)))
 		largest := int64(1)
 		for _, r := range rows {
 			if r.w != nil {
@@ -142,14 +139,16 @@ func (m *Model) header() string {
 	parts := []string{brand.Render("fell") + " " + mode}
 	if m.res != nil {
 		var total, strip scan.Size
+		n := 0
 		for _, w := range m.res.Worktrees {
 			if m.status[w.ID] == done {
 				continue
 			}
+			n++
 			total = total.Add(w.Total())
 			strip = strip.Add(w.ArtifactBytes())
 		}
-		parts = append(parts, bold.Render(format.Bytes(total.Allocated))+fmt.Sprintf(" in %d worktrees", len(m.res.Worktrees)),
+		parts = append(parts, bold.Render(format.Bytes(total.Allocated))+fmt.Sprintf(" in %d worktrees", n),
 			cyan.Render(format.Bytes(strip.Allocated))+" rebuildable"+freeable(strip))
 		if m.freeDisk >= 0 {
 			parts = append(parts, format.Bytes(m.freeDisk)+" free")
@@ -481,7 +480,7 @@ func (m *Model) help() string {
 	case m.confirm != nil:
 		return yellow.Render("  Proceed?") + "  " + bold.Render("y") + faint.Render(" yes   ") + bold.Render("f") + faint.Render(" toggle force   ") +
 			bold.Render("u") + faint.Render(" toggle unlock   any other key cancels")
-	case m.quitWarn:
+	case m.quitWarn && m.busy():
 		return yellow.Render("  Actions still running. Press ctrl+c again to quit anyway, or wait.")
 	}
 	return faint.Render("  ↑↓ move  space select  a all  s strip  r retire  tab group  o sort  R rescan  ? legend  q quit")
@@ -511,7 +510,11 @@ func (m *Model) confirmLines(height int) []string {
 	if c.unlock {
 		toggles += red.Render("  [unlock]")
 	}
-	lines := []string{"", yellow.Render(fmt.Sprintf("  %s %d worktree(s), about %s %s", verb, len(run), format.Bytes(total), dest)) + toggles, ""}
+	head := yellow.Render(fmt.Sprintf("  %s %d worktree(s), about %s %s", verb, len(run), format.Bytes(total), dest))
+	if len(run) == 0 {
+		head = yellow.Render("  Nothing to " + c.action + " yet: every worktree below is held back.")
+	}
+	lines := []string{"", head + toggles, ""}
 	if c.action == scan.ActionRetire {
 		lines = append(lines, faint.Render("  Each: rescue folder (commits only it has, uncommitted patch, ignored secrets) → "+clean.TrashName+","),
 			faint.Render("        checkout → "+clean.TrashName+", then `git worktree prune` if only its own record would go. Branches are kept."), "")
@@ -534,7 +537,7 @@ func (m *Model) confirmLines(height int) []string {
 				break
 			}
 			d := w.Decide(c.action)
-			why := strings.Join(d.Blocked, ", ")
+			why := blockedText(w, c.action, d.Blocked)
 			if why == "" {
 				var need []string
 				if len(d.Override) > 0 && !c.force {
@@ -551,6 +554,21 @@ func (m *Model) confirmLines(height int) []string {
 		}
 	}
 	return lines
+}
+
+// blockedText explains blocking reason codes in words.
+func blockedText(w *scan.Worktree, action string, codes []string) string {
+	var out []string
+	for _, c := range codes {
+		text := c
+		if c == scan.ReasonUnknown && action == scan.ActionStrip && w.Kind != scan.KindWorktree {
+			text = "no checkout to strip"
+		} else if i := slices.IndexFunc(w.Safety.Reasons, func(r scan.Reason) bool { return r.Code == c }); i >= 0 {
+			text = w.Safety.Reasons[i].Detail
+		}
+		out = append(out, text)
+	}
+	return strings.Join(out, "; ")
 }
 
 func (m *Model) saves(action string, w *scan.Worktree) string {

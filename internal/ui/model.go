@@ -90,6 +90,7 @@ type Model struct {
 	group     groupBy
 	sort      sortBy
 	cursorKey string
+	moved     bool // the user moved the cursor; until then it follows the top row
 	offset    int
 	width     int
 	height    int
@@ -98,6 +99,7 @@ type Model struct {
 	selected map[string]bool
 	status   map[string]status
 	errs     map[string]string
+	remeas   map[string]bool // re-measured after a strip; ignore older sizes
 	confirm  *confirm
 	queue    []job
 	quitWarn bool
@@ -116,7 +118,7 @@ type job struct {
 func New(opts scan.Options, copts clean.Options) *Model {
 	return &Model{
 		opts: opts, copts: copts, home: copts.Env.Home,
-		selected: map[string]bool{}, status: map[string]status{}, errs: map[string]string{},
+		selected: map[string]bool{}, status: map[string]status{}, errs: map[string]string{}, remeas: map[string]bool{},
 		width: 100, height: 30, freeDisk: -1,
 	}
 }
@@ -145,6 +147,7 @@ func waitSize(ch chan scan.Measurement) tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	defer m.scroll()
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
@@ -163,8 +166,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, waitSize(m.sizes)
 	case measuredMsg:
-		if w := m.find(msg.ID); w != nil {
+		if w := m.find(msg.ID); w != nil && !m.remeas[msg.ID] {
 			w.Apply(scan.Measurement(msg))
+		}
+		if rows := m.rows(); !m.moved && len(rows) > 0 {
+			m.cursorKey = firstItem(rows) // sizes reorder the list as they arrive
 		}
 		return m, waitSize(m.sizes)
 	case measureDone:
@@ -180,6 +186,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.status[o.ID] = idle // the worktree stays; it can be retired later
 				if msg.updated != nil {
 					m.replace(msg.updated)
+					m.remeas[o.ID] = true
 				}
 			}
 			delete(m.errs, o.ID)
@@ -231,6 +238,7 @@ func (m *Model) key(k string) tea.Cmd {
 	switch k {
 	case "q", "esc":
 		if m.busy() {
+			m.quitWarn = true
 			return nil
 		}
 		return tea.Quit
@@ -260,7 +268,8 @@ func (m *Model) key(k string) tea.Cmd {
 		if m.busy() || m.measuring {
 			return nil
 		}
-		m.res, m.status, m.errs, m.selected = nil, map[string]status{}, map[string]string{}, map[string]bool{}
+		m.moved = false
+		m.res, m.status, m.errs, m.selected, m.remeas = nil, map[string]status{}, map[string]string{}, map[string]bool{}, map[string]bool{}
 		return m.load()
 	case "space":
 		if len(rows) > 0 {
@@ -287,7 +296,7 @@ func (m *Model) key(k string) tea.Cmd {
 	}
 	if len(rows) > 0 {
 		i = max(0, min(i, len(rows)-1))
-		m.cursorKey = rows[i].key()
+		m.cursorKey, m.moved = rows[i].key(), true
 	}
 	return nil
 }
@@ -399,6 +408,19 @@ func (m *Model) next() tea.Cmd {
 		}
 		return actedMsg{clean.Retire(wc, wc.Fingerprint, opts), nil}
 	}
+}
+
+// scroll keeps the cursor row inside the visible list.
+func (m *Model) scroll() {
+	rows := m.rows()
+	cur, body := m.cursor(rows), m.listHeight()
+	if cur < m.offset {
+		m.offset = cur
+	}
+	if cur >= m.offset+body {
+		m.offset = cur - body + 1
+	}
+	m.offset = max(0, min(m.offset, len(rows)-body))
 }
 
 func (m *Model) busy() bool { return m.working() || len(m.queue) > 0 }
