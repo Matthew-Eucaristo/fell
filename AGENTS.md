@@ -11,6 +11,7 @@ Machine-wide, safety-first TUI/CLI that finds git worktrees (especially ones AI 
 - `internal/contract` — JSON contract (schema_version 1); `docs/contract.md` documents it.
 - `internal/ui` — Bubble Tea model/view. `internal/report` — text output. `main.go` — subcommands and flags.
 - `internal/testrepo` — temp repos/worktrees for tests. `demo/` — synthetic workspace + VHS tape. `packaging/homebrew/fell.rb` — tap formula template; `RELEASING.md`.
+- `site/` — GitHub Pages site (static HTML/CSS/JS, no third-party requests). `app.js` replicates `internal/ui` (layout, colours, confirm, legend, quit receipt) over `sample.js`; keep it in step when the TUI changes visibly. `site/build.sh` runs `demo/setup.sh` with `FELL_DEMO_DIR` in a temp dir and records only read-only output (`scan --json`, `--list`, `capabilities --json`; never strip/retire/apply), refuses output containing non-`~` paths, and fills the page's `<!--list-->`/count placeholders; actions in the replica are a dry run from each item's `actions[]`. `.github/workflows/pages.yml` deploys on pushes to `main` touching site, demo or Go code, and on releases.
 
 ## Invariants
 - Official way only: worktrees are removed by moving the checkout to the Trash and then `git worktree prune` (git's documented path), and only when the prune would drop nothing but that entry. Never `git worktree remove` (it deletes ignored files permanently), never delete branches, never `--force` git.

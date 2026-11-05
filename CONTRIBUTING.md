@@ -14,6 +14,10 @@ go run . --dry-run
 
 Tests build throwaway repositories and worktrees in temp dirs (`internal/testrepo`) and swap the trash for a temp folder. Never test removal against real directories; use `--dry-run`, `--list` or `scan --json` there.
 
+## Website
+
+`site/` is the GitHub Pages site: plain HTML, CSS and JS. Preview it with `site/build.sh /tmp/site/fell && python3 -m http.server -d /tmp/site 8000`, then open http://localhost:8000/fell/. The build needs Go: it builds the dummy workspace from `demo/setup.sh` in a temp directory and records only read-only output (`fell scan --json`, `fell --list`, `fell capabilities --json`) into `sample.js`; it never runs strip, retire or apply. It uses ffmpeg for the recording when it is installed, and deploys from `main` through `.github/workflows/pages.yml`.
+
 ## Ground rules
 
 - **The official way only.** fell removes worktrees through git's documented path (move the checkout to the trash, then `git worktree prune`) and never with `git worktree remove --force`. A worktree an app still tracks is never removed by fell, not even with `--force`: fell shows how that app removes it.
