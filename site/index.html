@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fell: find and safely cut down the git worktrees your AI agents left behind</title>
+<meta name="description" content="Claude Code, Codex, Cursor and Conductor give every session its own git worktree, and they pile up. fell finds them all, shows the evidence for each, and strips or retires them to the Trash, never losing work and never touching what an app still uses.">
+<meta name="theme-color" content="#0e0f0f">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://matthew-eucaristo.github.io/fell/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="fell">
+<meta property="og:title" content="fell: cut down the worktrees your AI agents left behind">
+<meta property="og:description" content="Finds every git worktree Claude Code, Codex, Cursor, Conductor and friends left behind, shows the evidence, and cuts them down to the Trash without losing work.">
+<meta property="og:url" content="https://matthew-eucaristo.github.io/fell/">
+<meta property="og:image" content="https://matthew-eucaristo.github.io/fell/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="fell's worktree list: Claude Code, Codex, Conductor and manual worktrees with size bars, rebuildable share and safe, protected and live labels">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "fell",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Linux",
+  "description": "Find the git worktrees your AI coding agents left behind, see exactly what is in each one, and cut them down safely.",
+  "url": "https://matthew-eucaristo.github.io/fell/",
+  "downloadUrl": "https://github.com/Matthew-Eucaristo/fell/releases",
+  "codeRepository": "https://github.com/Matthew-Eucaristo/fell",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<script src="sample.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="fell home"><span class="badge">fell</span></a>
+    <nav aria-label="Sections">
+      <a href="#where">Agents</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#cut">Strip &amp; retire</a>
+      <a href="#safety">Safety</a>
+      <a href="#use">Scripting</a>
+      <a href="#install">Install</a>
+    </nav>
+    <a class="gh" href="https://github.com/Matthew-Eucaristo/fell">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span>GitHub</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow"><span class="dot"></span> macOS · Linux · open source · MIT · <!--version-->v0.1.4<!--/version--></p>
+    <h1>Your agents left worktrees behind.<br><span class="grad">Cut them down. Lose nothing.</span></h1>
+    <p class="lede">Claude Code, Codex, Cursor, Conductor and friends give every chat, session or subagent its own git worktree: a full checkout with its own <code>node_modules</code> and build output, scattered across half a dozen places, often on detached HEADs that <code>git branch</code> never shows. <b>fell</b> finds them all, shows exactly what is in each one, and cuts them down to the Trash. Nothing is deleted permanently, and nothing an app still uses is touched.</p>
+
+    <div class="install">
+      <div class="cmd" role="group" aria-label="Install command">
+        <span class="prompt" aria-hidden="true">$</span>
+        <code>brew install matthew-eucaristo/tap/fell</code>
+        <button class="copy" type="button" data-copy="brew install matthew-eucaristo/tap/fell" aria-label="Copy install command"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zM1.75 5h1.5v1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5h1.5v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5C0 5.784.784 5 1.75 5z"/></svg><span class="copied">Copied</span></button>
+      </div>
+      <p class="sub">Then run <code>fell --dry-run</code>. It changes nothing. <a href="#install">Other ways to install →</a></p>
+    </div>
+  </div>
+
+  <div class="wrap wide">
+    <div class="term-wrap">
+      <div class="window">
+        <div class="titlebar">
+          <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="title">fell --dry-run</span>
+          <span class="hint-pill" id="try-hint">Try it: <kbd>↓</kbd> then <kbd>r</kbd> retire · <kbd>f</kbd> force · <kbd>s</kbd> strip · <kbd>tab</kbd> group</span>
+        </div>
+        <div class="term" id="term" tabindex="0" role="application" aria-roledescription="interactive demo"
+             aria-label="Interactive fell demo on dummy data. Arrow keys move, space selects, a selects all, s strips, r retires, y confirms, f toggles force, Tab groups by agent or repository, o sorts, question mark shows the legend, q quits. Shift+Tab leaves the demo.">
+          <noscript><img src="demo.gif" alt="fell scanning a dummy workspace of agent worktrees" width="1280" height="580"></noscript>
+        </div>
+        <div class="keys" id="term-keys" aria-label="Demo controls"></div>
+      </div>
+      <p class="caption">The real <code>fell scan --json</code> of the dummy workspace that <code>demo/setup.sh</code> builds, recorded when this page was built: one fake repo, worktrees from fake agent sessions, a session that was running. Actions are a dry run worked out from the scan's own decisions. Nothing here reads your machine.</p>
+    </div>
+  </div>
+</section>
+
+<section class="strip" aria-label="At a glance">
+  <div class="wrap strip-in">
+    <div><b><!--owners-->19<!--/owners--></b><span>agent tools recognised</span></div>
+    <div><b><!--kinds-->28<!--/kinds--></b><span>rebuildable artifact kinds</span></div>
+    <div><b>4</b><span>safety levels</span></div>
+    <div><b>0</b><span>permanent deletes by default</span></div>
+    <div><b>0</b><span>config, state or network</span></div>
+  </div>
+</section>
+
+<section class="sec" id="why">
+  <div class="wrap">
+    <p class="kicker">Why it exists</p>
+    <h2>The leak is real. So are the bad cleanups.</h2>
+    <p class="intro">Every parallel session gets a full checkout, and guides for parallel agents put that at 300–500 MB of dependencies per worktree. Vendor cleanups fail both ways: some never run, others delete live work and git-ignored files without a trace. Reported in public issue trackers:</p>
+    <div class="leaks">
+      <a class="leak" href="https://github.com/anthropics/claude-code/issues/58914"><b>764</b><span>Claude Code subagent worktrees, all detached HEADs: ~36 GB, 220 MB left free</span></a>
+      <a class="leak" href="https://github.com/anthropics/claude-code/issues/99672"><b>~200 GB</b><span>across 22 Claude Code worktrees with <code>.worktreeinclude</code> full copies</span></a>
+      <a class="leak" href="https://github.com/anthropics/claude-code/issues/102956"><b>556</b><span>Claude Code Workflows isolation lanes from 18 runs in two weeks</span></a>
+      <a class="leak" href="https://forum.cursor.com/t/windows-request-to-disable-automatic-worktree-creation-critical-disk-space-issue/146189"><b>~140 GB</b><span>from ~22 Cursor parallel-agent worktrees in a week</span></a>
+      <a class="leak bad" href="https://github.com/anthropics/claude-code/issues/98186"><b>2.9 GB</b><span>of generated images and ignored databases deleted by a pool cleanup's <code>git worktree remove --force</code>. Nothing went to the Trash.</span></a>
+      <a class="leak bad" href="https://github.com/anthropics/claude-code/issues/74386"><b>live work</b><span>discarded by another session's cleanup, which checked git state but not whether the worktree was in use</span></a>
+    </div>
+    <p class="note">Sources and per-tool research: <a href="https://github.com/Matthew-Eucaristo/fell/blob/main/docs/design.md">docs/design.md</a>. fell's rules come from these incidents.</p>
+  </div>
+</section>
+
+<section class="sec alt" id="where">
+  <div class="wrap">
+    <p class="kicker">Which worktrees it knows</p>
+    <h2>Every agent keeps them somewhere else. fell checks all of it.</h2>
+    <p class="intro">It walks your code roots and every known agent location, asks git (<code>git worktree list --porcelain</code>), and labels each worktree with the tool that made it. When an app still keeps its own record, fell only strips it and tells you how that app removes it.</p>
+    <div class="owners">
+      <article class="own both"><h3>Claude Code</h3><code>&lt;repo&gt;/.claude/worktrees/…</code><p>Strip and retire unless its session is live. Claude Code removes clean, pushed agent worktrees itself after <code>cleanupPeriodDays</code>.</p></article>
+      <article class="own"><h3>Claude Desktop</h3><code>git-worktrees.json pool (read-only)</code><p>Strip only; live while the app runs or a session leases it. Settings → storage cleanup, or archive the session.</p></article>
+      <article class="own"><h3>Codex</h3><code>$CODEX_HOME/worktrees/&lt;id&gt;/&lt;repo&gt;</code><p>Strip only. Archive the chat; Codex keeps <code>worktree-keep-count</code> newest.</p></article>
+      <article class="own"><h3>Cursor</h3><code>~/.cursor/worktrees/&lt;repo&gt;/&lt;id&gt;</code><p>Strip only. <code>/delete-worktree</code>; prunes past <code>cursor.worktreeMaxCount</code>.</p></article>
+      <article class="own"><h3>Conductor</h3><code>~/conductor/workspaces/&lt;repo&gt;/&lt;name&gt;</code><p>Strip only. Archive the workspace; it saves the git state and can restore it.</p></article>
+      <article class="own"><h3>OpenCode · Kilo Code</h3><code>$XDG_DATA_HOME/opencode · …/kilo · &lt;repo&gt;/.kilo/worktrees</code><p>Strip only. OpenCode <code>/worktrees</code> → ctrl+d; <code>kilo worktree remove &lt;name&gt;</code>.</p></article>
+      <article class="own"><h3>Hermes Agent</h3><code>&lt;repo&gt;/.worktrees/hermes-…</code><p>Strip only. Its own sweep, or <code>hermes worktree prune</code>.</p></article>
+      <article class="own"><h3>VS Code agent sessions</h3><code>&lt;repo&gt;.worktrees/… on …agents/… branches</code><p>Strip only. Archive or delete the session.</p></article>
+      <article class="own"><h3>Superset · Sculptor · Windsurf</h3><code>~/.superset · ~/.sculptor · ~/.windsurf</code><p>Strip only. Archive the workspace; <code>sculpt workspace delete</code>; delete the Cascade conversation.</p></article>
+      <article class="own"><h3>T3 Code · Vibe Kanban</h3><code>~/.t3/worktrees · $TMPDIR/vibe-kanban</code><p>Strip only. Settings → Storage → Delete now; delete the workspace.</p></article>
+      <article class="own both"><h3>Gemini CLI · Copilot CLI · Cline · Roo Code · Warp</h3><code>.gemini/worktrees · &lt;repo&gt;.worktrees · ~/.cline · ~/.roo · ~/.warp</code><p>Strip and retire: these tools keep no record of their own.</p></article>
+      <article class="own both"><h3>git (manual, Worktrunk, gtr …)</h3><code>anything git worktree list reports</code><p>Strip and retire. Your own <code>git worktree add</code> checkouts, attributed to you.</p></article>
+    </div>
+    <p class="note"><span class="pill-both">strip + retire</span> fell may retire it. <span class="pill-only">strip only</span> the app tracks it, so fell never retires it, even with <code>--force</code>. Aider, Crush, Goose, Kiro and Jules don't create local worktrees. Missing a tool? <a href="https://github.com/Matthew-Eucaristo/fell/issues/new?template=feature_request.md">Open a feature request</a> with where it puts worktrees and how it removes them.</p>
+  </div>
+</section>
+
+<section class="sec" id="evidence">
+  <div class="wrap two top">
+    <div>
+      <p class="kicker">The evidence for each</p>
+      <h2>A clean <code class="h2c">git status</code> is not enough.</h2>
+      <p class="intro">A worktree can hold git-ignored secrets, be in use by a process, be locked by a session, or hold commits no branch shows. fell checks all of it, per worktree:</p>
+      <ul class="checks">
+        <li><b>Size, and how much is rebuildable</b>: <code>node_modules</code>, <code>.venv</code>, <code>target</code>, build output.</li>
+        <li><b>Commits on no remote</b>, detached HEADs included, and commits that exist <em>only</em> in that worktree: HEAD, its reflog, its per-worktree refs.</li>
+        <li><b>Uncommitted changes</b> and <b>git-ignored secrets and data</b>: <code>.env*</code>, keys, local databases.</li>
+        <li><b>Last activity</b>, from the last commit, git's own record or file changes.</li>
+        <li><b>Liveness</b>: processes working inside it, locks naming a running session, the owning app.</li>
+        <li><b>Locks, keep markers, missing checkouts</b> and orphaned ones.</li>
+      </ul>
+    </div>
+    <div class="window">
+      <div class="titlebar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="title">fell --list</span></div>
+<pre class="term static listing" aria-label="fell --list on the dummy workspace"><!--list-->fell: 7 worktree(s), 849.4 MB on disk (849.4 MB freeable), 849.3 MB rebuildable (849.3 MB freeable)  (roots: ~/dev + agent locations)
+
+CLAUDE CODE  3 worktree(s)  471.9 MB
+  188.8 MB  99% rebuildable  3mo ago  protected  shop/agent-a3f9c2e1b7d04a6e  detached ↑1 only-here:1  wt-d63c80f8e8d5
+  241.2 MB  99% rebuildable  4mo ago  safe       shop/agent-b81d0e44c2a95f13  detached                 wt-8ef02e8895ac
+  42.0 MB   99% rebuildable  today    live       shop/fix-search              detached locked          wt-7abc560671df
+    shop/agent-a3f9c2e1b7d04a6e  ~/dev/shop/.claude/worktrees/agent-a3f9c2e1b7d04a6e
+      - only_here: 1 commit(s) exist only in this worktree
+      - unpushed: 1 commit(s) not on any remote
+    shop/fix-search  ~/dev/shop/.claude/worktrees/fix-search
+      - live: locked by a running session (pid 43040)
+      - locked: locked: claude session fix-search (pid 43040)
+      - recent: changed in the last 7 days (last git activity today); an agent session may still resume in it
+
+CODEX  1 worktree(s)  157.3 MB
+  157.3 MB  99% rebuildable  3w ago  protected  shop/7c1e  detached app-tracked  wt-016b88bf98d0
+    shop/7c1e  ~/.codex/worktrees/7c1e/shop
+      - app_tracked: Codex still tracks it. Codex removes a chat's worktree when you archive the chat, or when more than worktree-keep-count (default 15) exist; it snapshots first so reopening the chat restores it.
+
+CONDUCTOR  1 worktree(s)  125.8 MB
+  125.8 MB  99% rebuildable  9d ago  protected  shop/lisbon  detached app-tracked  wt-eb7d1f56f120
+    shop/lisbon  ~/conductor/workspaces/shop/lisbon
+      - app_tracked: Conductor still tracks it. Archive the workspace in Conductor; it saves the git state, including uncommitted files, and can restore it.
+
+GIT (MANUAL)  2 worktree(s)  94.4 MB
+  94.4 MB  99% rebuildable  today   protected  shop/shop-hotfix  hotfix/tax ✎1 secrets:1  wt-1131e0a8cd33
+  0 B      -                5w ago  caution    shop/shop-spike   checkout missing ↑1      wt-c168dfa79ff8
+    shop/shop-hotfix  ~/dev/shop-hotfix
+      - dirty: 1 uncommitted change(s)
+      - ignored_precious: 1 ignored secret/data file(s), copied to the rescue folder on retire
+      - recent: changed in the last 7 days (last file change today); an agent session may still resume in it
+    shop/shop-spike  ~/dev/shop-spike
+      - unpushed: 1 commit(s) not on any remote
+
+Sizes are allocated blocks with hard links counted once; "freeable" excludes blocks shared with hard links, APFS clones or snapshots. Freed space is measured after acting.
+Act with: fell strip &lt;id&gt;   fell retire &lt;id&gt;   (add --dry-run to preview)<!--/list--></pre>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="cut">
+  <div class="wrap">
+    <p class="kicker">Two ways to cut</p>
+    <h2>Strip what rebuilds. Retire what is done. Both reversible.</h2>
+    <div class="cuts">
+      <article class="cut">
+        <header><span class="lv safe">strip</span><h3>Keep the worktree, drop its weight</h3></header>
+        <p>Moves rebuildable artifacts to the Trash and keeps the checkout. The safe answer for a worktree that still holds work. Only directories that match the catalog <b>and</b> that git ignores, with nothing tracked inside and no repository below, never through a symlink.</p>
+        <table class="catalog">
+          <tr><th>Directory</th><th>Comes back with</th></tr>
+          <tr><td><code>node_modules</code> <code>.next</code> <code>.nuxt</code> <code>.svelte-kit</code> <code>.turbo</code> <code>dist</code> <code>build</code> …</td><td>npm / pnpm / yarn / bun install, the next build</td></tr>
+          <tr><td><code>.venv</code> <code>venv</code> <code>.tox</code> <code>.pytest_cache</code> <code>.mypy_cache</code> <code>.ruff_cache</code></td><td><code>uv sync</code> / <code>pip install</code>, the tool's next run</td></tr>
+          <tr><td><code>target</code> · <code>.dart_tool</code> · <code>.gradle</code> <code>.cxx</code> · <code>Pods</code> · <code>.build</code> · <code>vendor</code></td><td>cargo / mvn, <code>flutter pub get</code>, Gradle, <code>pod install</code>, <code>swift build</code>, <code>composer install</code></td></tr>
+          <tr><td><code>_build</code> <code>deps</code> · <code>.zig-cache</code> <code>zig-out</code> · <code>.stack-work</code> · <code>.angular</code></td><td>the matching build tool</td></tr>
+        </table>
+        <p class="small">A symlinked <code>node_modules</code> (Claude Code's <code>worktree.symlinkDirectories</code>) is never followed: it belongs to the main checkout.</p>
+      </article>
+      <article class="cut">
+        <header><span class="lv review">retire</span><h3>Save a rescue folder, then let it go</h3></header>
+        <p>Writes a rescue folder to the Trash first, then moves the checkout to the Trash and lets <code>git worktree prune</code> drop git's record. Branches are kept. Never <code>git worktree remove</code>, which deletes ignored files permanently.</p>
+<pre class="tree"><span class="m">fell-rescue-shop-agent-a3f9c2e1b7d04a6e-20261027-101500/</span>
+  RESTORE.md          <span class="f">exact commands for this worktree</span>
+  manifest.json       <span class="f">what was saved, HEAD, branch, paths</span>
+  commits.bundle      <span class="f">commits no branch, tag or remote had</span>
+  uncommitted.patch   <span class="f">changes to tracked files</span>
+  untracked.txt       <span class="f">untracked files (in the trashed checkout)</span>
+  precious/.env       <span class="f">copies of git-ignored secrets and data</span></pre>
+<pre class="tree restore"><span class="f"># put it back</span>
+git -C ~/dev/shop fetch ~/.Trash/fell-rescue-…/commits.bundle \
+    HEAD:refs/heads/fell-rescue/agent-a3f9
+git -C ~/dev/shop worktree add ~/dev/shop-restored fell-rescue/agent-a3f9</pre>
+        <p class="small">The bundle is verified with <code>git bundle verify</code> and built in a throwaway repository, so no ref is added to yours. Emptying the Trash is your explicit act of forgetting.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="safety">
+  <div class="wrap">
+    <p class="kicker">Safety model</p>
+    <h2>A cleaner is only as good as what it refuses to do.</h2>
+    <p class="intro">Every action re-reads the worktree right before acting and checks it against what you saw. The checks live in <a href="https://github.com/Matthew-Eucaristo/fell/tree/main/internal/clean"><code>internal/clean</code></a>, the only code that changes anything.</p>
+    <ul class="levels" aria-label="Safety levels">
+      <li><span class="lv safe">● safe</span> nothing would be lost; retire allowed</li>
+      <li><span class="lv review">▲ caution</span> allowed; something is saved to the rescue folder or worth a look</li>
+      <li><span class="lv protected">■ protected</span> retire needs force or unlock, or is blocked</li>
+      <li><span class="lv live">◉ live</span> its app or session is running; fell will not touch it</li>
+    </ul>
+    <div class="safety">
+      <article><h3><span class="sg">⎔</span>Pinned to the scan</h3><p>A fingerprint covers HEAD, branch, uncommitted changes, locks, app tracking, ignored secrets and the directory's identity. Anything changed since the scan, and the action is refused.</p></article>
+      <article><h3><span class="sg live">◉</span>Live means hands off</h3><p>A Claude Code lock naming a running process (PID and start time checked), a Claude Desktop lease, the owning app running, or an agent working inside. Not even <code>--force</code> acts on it.</p></article>
+      <article><h3><span class="sg">⌘</span>The owner's way, not ours</h3><p>A worktree an app still tracks is never retired; fell shows how that app removes it. Vendor state is read, never written, and an unknown format counts as tracked.</p></article>
+      <article><h3><span class="sg">⛬</span>Never lose work</h3><p>Dirty, in use, or holding commits found nowhere else: retire refuses without <code>--force</code>, and even then bundles the commits, saves a patch and copies ignored secrets first.</p></article>
+      <article><h3><span class="sg">⑂</span>Git's documented removal</h3><p>Checkout to the Trash, then <code>git worktree prune</code>, only when its dry run would drop nothing but this worktree's entry. Never deletes branches, never edits <code>.git</code> internals.</p></article>
+      <article><h3><span class="sg">⊘</span>Guards</h3><p>Main checkouts and bare repos are never items. No symlinks, no home folder or its ancestors, no tracked or unignored artifacts, no repository hidden below one.</p></article>
+      <article><h3><span class="sg">⌫</span>Trash by default</h3><p><code>/usr/bin/trash</code> or Finder on macOS, the freedesktop.org home trash on Linux. <code>--permanent</code> exists only for strip. Locked worktrees need <code>--unlock</code>.</p></article>
+      <article><h3><span class="sg">◌</span>Read-only scanning</h3><p>git runs with <code>--no-optional-locks</code> and <code>core.fsmonitor=false</code>, so a scan doesn't even refresh an index. <code>--dry-run</code>, <code>--list</code>, <code>--json</code> and <code>scan</code> change nothing.</p></article>
+    </div>
+    <p class="note">Press <kbd>r</kbd> on the protected Claude Code lane in the demo above: the confirmation shows what would run, what is saved, and what is refused and why. <kbd>f</kbd> forces it, and the only-here commit is bundled.</p>
+  </div>
+</section>
+
+<section class="sec alt" id="numbers">
+  <div class="wrap two">
+    <div>
+      <p class="kicker">Honest numbers</p>
+      <h2>Measured from the disk, not assumed.</h2>
+      <p class="intro">Worktrees share a lot: pnpm hard links, APFS clones, local snapshots. Adding up <code>du</code> overstates what removal frees, so fell keeps the numbers apart.</p>
+    </div>
+    <ul class="checks">
+      <li><b>Allocated blocks, hard links once.</b> A file hard-linked several times counts once.</li>
+      <li><b>Shared is not freeable.</b> Hard links reaching outside the worktree and, on macOS, blocks APFS shares with clones or snapshots (each file's private size, <code>ATTR_CMNEXT_PRIVATESIZE</code>) are reported as shared.</li>
+      <li><b>Freed space is measured.</b> After acting, fell reports the change in free disk space.</li>
+      <li><b>The Trash still holds it.</b> Moving to the Trash frees nothing until you empty it, and Time Machine local snapshots can hold space a while longer. fell says so instead of claiming a number.</li>
+      <li><b>Known blind spot.</b> Btrfs and XFS reflinks on Linux are not visible and count in full.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="compare">
+  <div class="wrap">
+    <p class="kicker">How it compares</p>
+    <h2>The careful middle.</h2>
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <thead><tr><th></th><th class="us">fell</th><th><code>git worktree remove</code></th><th>agent built-in cleanup</th><th>lopper / bonsai</th><th>Mole <code>purge</code></th></tr></thead>
+        <tbody>
+          <tr><th>Finds worktrees across repos and agents</th><td class="us">✓</td><td>one repo</td><td>own only</td><td>✓</td><td>inside known containers</td></tr>
+          <tr><th>Detached-HEAD commits found only there</th><td class="us">✓ bundled</td><td>lost (with <code>--force</code>)</td><td>varies</td><td>flagged</td><td>n/a</td></tr>
+          <tr><th>Ignored secrets and data</th><td class="us">✓ saved and kept in Trash</td><td>deleted</td><td>often deleted</td><td>deleted</td><td>n/a</td></tr>
+          <tr><th>Respects app-tracked and live worktrees</th><td class="us">✓</td><td>—</td><td>own only</td><td>partly</td><td>n/a</td></tr>
+          <tr><th>Strip artifacts but keep the worktree</th><td class="us">✓</td><td>—</td><td>—</td><td>—</td><td>✓ (permanent)</td></tr>
+          <tr><th>Default action</th><td class="us">Trash</td><td>permanent</td><td>permanent</td><td>permanent</td><td>permanent</td></tr>
+          <tr><th>Measured freed space</th><td class="us">✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="use" class="sec alt">
+  <div class="wrap two">
+    <div>
+      <p class="kicker">For tools and scripts</p>
+      <h2>A TUI when you look. A contract when you don't.</h2>
+      <p class="intro"><code>fell scan --json</code> and <code>fell capabilities --json</code> follow a <a href="https://github.com/Matthew-Eucaristo/fell/blob/main/docs/contract.md">versioned contract</a> with IDs and fingerprints. <code>fell apply --plan</code> runs a list of <code>{id, fingerprint, action}</code> items and refuses any that changed since the scan. It is how <a href="https://matthew-eucaristo.github.io/decruft/">decruft</a> hands worktrees back to fell, and any cleanup tool can adopt the same shape.</p>
+      <table class="codes">
+        <caption>Exit codes</caption>
+        <tr><td>0</td><td>every item done, or a dry run</td></tr>
+        <tr><td>1</td><td>error before acting (bad roots, git missing)</td></tr>
+        <tr><td>2</td><td>usage error, or an invalid plan</td></tr>
+        <tr><td>3</td><td>at least one item refused, none failed</td></tr>
+        <tr><td>4</td><td>at least one item failed (partial)</td></tr>
+      </table>
+    </div>
+<pre class="usage"><code><span class="c"># interactive: ~/dev (or the current dir) + agent locations</span>
+fell
+<span class="c"># try everything, change nothing</span>
+fell --dry-run
+<span class="c"># other roots; table and exit</span>
+fell ~/code ~/work
+fell --list
+<span class="c"># machine-readable scan, never changes anything</span>
+fell scan --json
+<span class="c"># one worktree, by ID or path</span>
+fell strip wt-ac80840e6477
+fell retire --dry-run ~/dev/shop/.claude/worktrees/agent-b81d
+<span class="c"># strip every safe worktree, through a plan</span>
+fell scan --json \
+  | jq -r '.items[] | select(.safety.level=="safe")
+      | {id, fingerprint, action:"strip"}' \
+  | jq -s '{schema_version:1, items:.}' \
+  | fell apply --plan - --dry-run</code></pre>
+  </div>
+</section>
+
+<section id="install" class="sec">
+  <div class="wrap">
+    <p class="kicker">Install</p>
+    <h2>One command. Nothing left behind.</h2>
+    <div class="tabs" role="tablist" aria-label="Install method">
+      <button role="tab" aria-selected="true" aria-controls="p-brew" id="t-brew">Homebrew</button>
+      <button role="tab" aria-selected="false" aria-controls="p-go" id="t-go" tabindex="-1">Go</button>
+      <button role="tab" aria-selected="false" aria-controls="p-rel" id="t-rel" tabindex="-1">Release archive</button>
+    </div>
+    <div class="panel" role="tabpanel" id="p-brew" aria-labelledby="t-brew">
+      <div class="cmd"><span class="prompt" aria-hidden="true">$</span><code>brew install matthew-eucaristo/tap/fell</code><button class="copy" type="button" data-copy="brew install matthew-eucaristo/tap/fell" aria-label="Copy Homebrew command"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zM1.75 5h1.5v1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5h1.5v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5C0 5.784.784 5 1.75 5z"/></svg><span class="copied">Copied</span></button></div>
+      <p>macOS and Linux. Also installed by <a href="https://matthew-eucaristo.github.io/decruft/">decruft</a>, which runs fell for its Git worktrees category.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-go" aria-labelledby="t-go" hidden>
+      <div class="cmd"><span class="prompt" aria-hidden="true">$</span><code>go install github.com/Matthew-Eucaristo/fell@latest</code><button class="copy" type="button" data-copy="go install github.com/Matthew-Eucaristo/fell@latest" aria-label="Copy go install command"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zM1.75 5h1.5v1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5h1.5v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5C0 5.784.784 5 1.75 5z"/></svg><span class="copied">Copied</span></button></div>
+      <p>Needs Go 1.26 or later.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="p-rel" aria-labelledby="t-rel" hidden>
+      <p><a class="btn" href="https://github.com/Matthew-Eucaristo/fell/releases/latest">Download from GitHub Releases →</a></p>
+      <p>Prebuilt archives for macOS and Linux, amd64 and arm64.</p>
+    </div>
+    <div class="platforms">
+      <div><b>macOS</b><span>Trash via <code>/usr/bin/trash</code> (macOS 15+) or Finder; APFS clone and snapshot blocks reported as shared.</span></div>
+      <div><b>Linux</b><span>The freedesktop.org home trash, refusing cross-filesystem moves rather than copying. Process liveness from <code>/proc</code>.</span></div>
+      <div><b>Needs git</b><span>On <code>PATH</code>. fell asks git about every worktree and removes them only through git's documented path.</span></div>
+    </div>
+    <details class="uninstall">
+      <summary>Uninstalling leaves nothing behind</summary>
+<pre><code>brew uninstall fell
+brew autoremove                     # removes Go if it was installed only to build fell
+brew cleanup --prune=all            # optional: clears Homebrew's download and build cache
+brew untap matthew-eucaristo/tap    # only if nothing else is installed from this tap</code></pre>
+      <p>fell writes no config, cache, log or state files. Installed with <code>go install</code>? Run <code>rm "$(go env GOPATH)/bin/fell"</code>. Anything fell moved to the Trash stays there until you empty it or put it back.</p>
+    </details>
+  </div>
+</section>
+
+<section id="faq" class="sec alt">
+  <div class="wrap narrow">
+    <p class="kicker">Questions</p>
+    <h2>Fair questions.</h2>
+    <details><summary>Can it lose my work?</summary><p>Retire refuses worktrees that are dirty, in use, or hold commits found nowhere else, unless you pass <code>--force</code>. Even then it first bundles those commits, saves a patch of uncommitted changes and copies ignored secrets into a rescue folder, and everything goes to the Trash. When fell can't tell what would be lost, it treats the worktree as protected. Worktrees with submodules are never retired.</p></details>
+    <details><summary>Why not just <code>git worktree remove</code>?</summary><p>It deletes the checkout permanently, git-ignored files included (your <code>.env</code>, a local database), and with <code>--force</code> dirty ones too. On a detached HEAD, the commits only that worktree held are orphaned. git documents another path: delete the directory, then <code>git worktree prune</code>. fell takes that path, with the Trash instead of delete.</p></details>
+    <details><summary>What about worktrees Codex, Cursor or Claude Desktop manage?</summary><p>fell shows them, can strip their rebuildable artifacts while the app isn't running, and never retires them, even with <code>--force</code>. Each one carries the owner's official way to remove it, because the app keeps its own record and may want to restore it.</p></details>
+    <details><summary>I retired a worktree. Why didn't free space go up?</summary><p>Because it is in the Trash, where Put Back restores it. Empty the Trash to reclaim the space; Time Machine local snapshots may hold it a while longer. fell reports the measured change rather than a promise.</p></details>
+    <details><summary>Does it write anything, or phone home?</summary><p>No config, cache, log or state files, and no network requests. A short-lived staging folder exists only during a retire. JSON output writes paths under your home as <code>~/…</code>. This page loads nothing from third parties either.</p></details>
+    <details><summary>My agent tool isn't listed.</summary><p><a href="https://github.com/Matthew-Eucaristo/fell/issues/new?template=feature_request.md">Open a feature request</a> with where it puts worktrees and how it removes them. Until then, worktrees of repositories under your roots still show up, attributed to git. Folders another tool is in the middle of deleting are left alone.</p></details>
+    <details><summary>I found a bug that touches the wrong thing.</summary><p>That is a security issue. Please report it privately through <a href="https://github.com/Matthew-Eucaristo/fell/security/advisories/new">GitHub Security Advisories</a>, not a public issue.</p></details>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>Find the worktrees your agents forgot.</h2>
+    <div class="cmd big"><span class="prompt" aria-hidden="true">$</span><code>brew install matthew-eucaristo/tap/fell</code><button class="copy" type="button" data-copy="brew install matthew-eucaristo/tap/fell" aria-label="Copy install command"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zM1.75 5h1.5v1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5h1.5v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5C0 5.784.784 5 1.75 5z"/></svg><span class="copied">Copied</span></button></div>
+    <p class="sub">Start with <code>fell --dry-run</code>. It only looks.</p>
+    <figure class="recording">
+      <div class="window">
+        <div class="titlebar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="title">The real TUI, recorded with VHS on the dummy workspace</span></div>
+        <div class="media">
+          <video id="demo-video" muted loop playsinline preload="none" width="1280" height="580" poster="demo-poster.webp" aria-label="fell scanning worktrees left by Claude Code, Codex and Conductor: it refuses to retire one holding a commit that exists nowhere else until forced, leaves a running session alone, keeps app-tracked worktrees for their app to remove, strips node_modules from the rest, and prints the same scan as JSON">
+            <source src="demo.mp4" type="video/mp4">
+          </video>
+          <button class="play" type="button" id="play" aria-label="Play the recording"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div>
+      <span class="badge">fell</span>
+      <p>MIT licensed. <em>To fell</em> is to cut down a tree.</p>
+      <p>Also by the same author: <a href="https://matthew-eucaristo.github.io/decruft/">decruft</a>, the Storage screen developers never got, and <a href="https://matthew-eucaristo.github.io/lately/">lately</a>, what just happened on my Mac, and what mattered.</p>
+    </div>
+    <nav aria-label="Project links">
+      <a href="https://github.com/Matthew-Eucaristo/fell">Source</a>
+      <a href="https://github.com/Matthew-Eucaristo/fell/releases">Releases</a>
+      <a href="https://github.com/Matthew-Eucaristo/fell/blob/main/docs/contract.md">JSON contract</a>
+      <a href="https://github.com/Matthew-Eucaristo/fell/blob/main/docs/design.md">Design notes</a>
+      <a href="https://github.com/Matthew-Eucaristo/fell/blob/main/SECURITY.md">Security</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

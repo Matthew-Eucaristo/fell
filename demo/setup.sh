@@ -4,9 +4,10 @@
 # identity and prompt. Nothing from the real machine appears in the recording.
 # Usage: source demo/setup.sh   (from the repository root)
 # Remove: kill $FELL_DEMO_LIVE; hdiutil detach /tmp/fell-demo/home (macOS); rm -rf /tmp/fell-demo
+# FELL_DEMO_DIR puts the workspace elsewhere (site/build.sh uses a temp dir).
 set -e
 
-DEMO="$(cd /tmp && pwd -P)/fell-demo"
+DEMO="${FELL_DEMO_DIR:-$(cd /tmp && pwd -P)/fell-demo}"
 [ -d "$DEMO/home" ] && command -v hdiutil >/dev/null && hdiutil detach -quiet "$DEMO/home" 2>/dev/null
 [ -d "$DEMO" ] && chmod -R u+w "$DEMO" && rm -rf "$DEMO"
 mkdir -p "$DEMO/bin" "$DEMO/home"

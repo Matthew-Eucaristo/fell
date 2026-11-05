@@ -4,6 +4,8 @@ Find the git worktrees your AI coding agents left behind, see exactly what is in
 
 ![fell scanning worktrees left by Claude Code, Codex and Conductor: it refuses to retire one holding a commit that exists nowhere else until forced (then bundles it), leaves a running session alone, keeps app-tracked worktrees for their app to remove, strips node_modules from the rest, and prints the same scan as JSON](demo/demo.gif)
 
+**Website:** [matthew-eucaristo.github.io/fell](https://matthew-eucaristo.github.io/fell/), with a clickable demo fed by `fell scan --json` on the dummy workspace from `demo/setup.sh`.
+
 *To fell* is to cut down a tree. Claude Code, Codex, Cursor, Conductor and friends now give every chat, session or subagent its own git worktree. Each one is a full checkout with its own `node_modules` and build output, and they pile up in half a dozen places. Some are detached HEADs that `git branch` never shows. Vendor cleanups either leak them or delete live work and git-ignored files without a trace. `fell` is the careful middle:
 
 - **Sees every worktree, attributed.** It walks your code roots and every known agent location, asks git (`git worktree list --porcelain`), and labels each worktree with the tool that made it: Claude Code, Claude Desktop, Codex, Cursor, Conductor, OpenCode, Kilo Code, Hermes, Gemini CLI, VS Code and Copilot, and more, or you.
